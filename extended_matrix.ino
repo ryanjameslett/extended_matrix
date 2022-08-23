@@ -63,25 +63,15 @@ uint32_t strip_color_wheel(int16_t WheelPos) {
   }
 }
 
-void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
-    // int16_t color = counter_val - (x_pos * 8) - 255;
+
+void stripColor(int16_t x_pos, int16_t counter) {
     int16_t skip = 255 / STRIP_LENGTH;
-    int16_t color = local_counter + (x_pos * skip);
-    
-   
-    // Serial.println("x: ", x_pos, " count: ", counter_val, " color: ", color);
-    Serial.print(" x: ");
-    Serial.print(x_pos);
-    Serial.print(" y: ");
-    Serial.print(y_pos);
-    Serial.print(" count: ");
-    Serial.print(counter_val);
-    Serial.print(" skip: ");
-    Serial.print(skip);
-    Serial.print(" color:");
-    Serial.println(color);
-    Serial.println("-- End Loop");
+    int16_t color = (counter + (x_pos * skip)) % 255; 
     strip.setPixelColor(x_pos, strip_color_wheel(color));
+}
+
+void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
+    stripColor(x_pos, local_counter);
 }
 
 void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
