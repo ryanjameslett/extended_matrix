@@ -125,5 +125,5 @@ void loop() {
   strip.show();
   delay(100);
   counter = 0;
-  //counter = 0 + shift_speed;
+  // counter = 0 + shift_speed;
 }
