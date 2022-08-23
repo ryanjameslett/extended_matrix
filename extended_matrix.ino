@@ -41,7 +41,7 @@
 #define COLOR_WHEEL 1
 #define SCREEN_WIPE 2
 
-byte program = 1;
+byte program = 2;
 int16_t counter = 0;
 int16_t counter2 = 0;
 int16_t shift_speed = 1;
