@@ -17,8 +17,6 @@
  * don't pass counter values -- closures work here.
  * see if we can use 8-bit ints to save space
  * pass strip number through display code
- * rename counter -> pixel
- * rename counter2 -> row
  * add frame counter
  * make it so we can draw backwards
     * wipe code should be able to switch back and forward
@@ -41,10 +39,16 @@
 #define COLOR_WHEEL 1
 #define SCREEN_WIPE 2
 
-byte program = 2;
-int16_t counter = 0;
-int16_t counter2 = 0;
+
+// Global variables
+
+byte g_program_id = 1;
+int16_t g_pixel = 0;
+int16_t g_row = 0;
 int16_t shift_speed = 1;
+
+
+// Initialize Neopixels
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
     GRID_LENGTH,
@@ -97,51 +101,57 @@ uint32_t strip_color_wheel(int16_t WheelPos) {
 }
 
 // COLOR STUFF
-void stripColor(int16_t x_pos, int16_t counter) {
+void stripColor(int16_t x_pos, int16_t pixel) {
     int16_t skip = 255 / STRIP_LENGTH;
-    int16_t color = (counter + (x_pos * skip)) % 255; 
+    int16_t color = (pixel + (x_pos * skip)) % 255;
     strip.setPixelColor(x_pos, strip_color_wheel(color));
 }
 
-void gridColor(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
-    matrix.drawPixel(x_pos, y_pos, grid_color_wheel(counter_val));
+void gridColor(int16_t x_pos, int16_t y_pos, int16_t pixel_val) {
+    matrix.drawPixel(x_pos, y_pos, grid_color_wheel(pixel_val));
 }
 
 
 // WIPE
-void stripWipe(int16_t x_pos, int16_t counter) {
-  if (counter2 >= GRID_LENGTH) {
-    if (x_pos == counter2 - GRID_LENGTH) {
+void stripWipe(int16_t x_pos, int16_t pixel) {
+  if (g_row >= GRID_LENGTH) {
+    if (x_pos == g_row - GRID_LENGTH) {
       strip.setPixelColor(x_pos, strip.Color(255, 255, 255));
     }
   }
 }
 
-void gridWipe(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
-  if (x_pos == (counter2)) {
+void gridWipe(int16_t x_pos, int16_t y_pos, int16_t pixel_val) {
+  if (x_pos == (g_row)) {
     matrix.drawPixel(x_pos, y_pos, matrix.Color(255, 255, 255));
   }
 }
 
 // GENERIC STUFF
-void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
-  switch (program) {
+/**
+ Draw to a neopixel strand
+
+ TODO:
+ * take strand object as param?
+ */
+void drawStrip(int16_t x_pos, int16_t y_pos, int16_t pixel) {
+  switch (g_program_id) {
     case COLOR_WHEEL:
-        stripColor(x_pos, local_counter);
+        stripColor(x_pos, 0);
         break;
     case SCREEN_WIPE:
-        stripWipe(x_pos, counter_val);
+        stripWipe(x_pos, pixel);
         break;
   }
 }
 
-void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
-  switch (program) {
+void drawGrid(int16_t x_pos, int16_t y_pos, int16_t pixel) {
+  switch (g_program_id) {
     case COLOR_WHEEL:
-      gridColor(x_pos, y_pos, counter_val);
+      gridColor(x_pos, y_pos, pixel);
       break;
     case SCREEN_WIPE:
-      gridWipe(x_pos, y_pos, counter_val);
+      gridWipe(x_pos, y_pos, pixel);
       break;
   }
 }
@@ -155,23 +165,26 @@ void loop() {
   for (int16_t x = 0; x < GRID_LENGTH + STRIP_LENGTH ; x++) { 
     for (int16_t y = 0; y < GRID_HEIGHT; y++) {
         if (x < GRID_LENGTH) {
-            drawGrid(x, y, counter);
+            drawGrid(x, y, g_pixel);
         }
         else if (y == 0) {
-          drawStrip(x - GRID_LENGTH, y, counter, counter - 256 - ((x - GRID_LENGTH) * (8 - y)));
+          drawStrip(
+            x - GRID_LENGTH, // x position shifted past the end of the grid
+            y,
+            g_pixel // current logical pixel count
+          );
         }
-        counter++;
+        g_pixel++;
     }
   }
 
   matrix.show();
   strip.show();
   delay(DELAY);
-  counter = 0;
+  g_pixel = 0;
 
-  counter2 = counter2 + 1;
-  if (counter2 > (GRID_LENGTH + STRIP_LENGTH)) {
-    counter2 = 0;
+  g_row = g_row + 1;
+  if (g_row > (GRID_LENGTH + STRIP_LENGTH)) {
+    g_row = 0;
   }
-  //Serial.println(" -- END");
 }
