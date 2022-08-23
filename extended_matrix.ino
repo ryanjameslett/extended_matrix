@@ -13,6 +13,11 @@
 #define STRIP_PIN 5
 #define STRIP_LENGTH 58
 
+#define COLOR_WHEEL 1
+#define SCREEN_WIPE 2
+
+byte program = 1;
+
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
     GRID_LENGTH,
     GRID_HEIGHT,
@@ -63,22 +68,38 @@ uint32_t strip_color_wheel(int16_t WheelPos) {
   }
 }
 
-
+// COLOR STUFF
 void stripColor(int16_t x_pos, int16_t counter) {
     int16_t skip = 255 / STRIP_LENGTH;
     int16_t color = (counter + (x_pos * skip)) % 255; 
     strip.setPixelColor(x_pos, strip_color_wheel(color));
 }
 
-void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
-    stripColor(x_pos, local_counter);
-}
-
-void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
+void gridColor(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
     matrix.drawPixel(x_pos, y_pos, grid_color_wheel(counter_val));
 }
 
 
+// GENERIC STUFF
+void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
+  switch (program) {
+    case COLOR_WHEEL:
+        stripColor(x_pos, local_counter);
+        break;
+    //case SCREEN_WIPE:
+        //stripWipe(x_pos, local_counter);
+  }
+}
+
+void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
+  switch (program) {
+    case COLOR_WHEEL:
+      gridColor(x_pos, y_pos, counter_val);
+      break;
+  }
+}
+
+// MAIN
 int16_t counter = 0;
 int16_t shift_speed = 15;
 
