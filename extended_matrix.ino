@@ -13,10 +13,14 @@
 #define STRIP_PIN 5
 #define STRIP_LENGTH 58
 
+#define DELAY 10
 #define COLOR_WHEEL 1
 #define SCREEN_WIPE 2
 
-byte program = 1;
+byte program = 2;
+int16_t counter = 0;
+int16_t counter2 = 0;
+int16_t shift_speed = 1;
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
     GRID_LENGTH,
@@ -80,14 +84,30 @@ void gridColor(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
 }
 
 
+// WIPE
+void stripWipe(int16_t x_pos, int16_t counter) {
+  if (counter2 >= GRID_LENGTH) {
+    if (x_pos == counter2 - GRID_LENGTH) {
+      strip.setPixelColor(x_pos, strip.Color(255, 255, 255));
+    }
+  }
+}
+
+void gridWipe(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
+  if (x_pos == (counter2)) {
+    matrix.drawPixel(x_pos, y_pos, matrix.Color(255, 255, 255));
+  }
+}
+
 // GENERIC STUFF
 void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
   switch (program) {
     case COLOR_WHEEL:
         stripColor(x_pos, local_counter);
         break;
-    //case SCREEN_WIPE:
-        //stripWipe(x_pos, local_counter);
+    case SCREEN_WIPE:
+        stripWipe(x_pos, counter_val);
+        break;
   }
 }
 
@@ -96,36 +116,33 @@ void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
     case COLOR_WHEEL:
       gridColor(x_pos, y_pos, counter_val);
       break;
+    case SCREEN_WIPE:
+      gridWipe(x_pos, y_pos, counter_val);
+      break;
   }
 }
 
 // MAIN
-int16_t counter = 0;
-int16_t shift_speed = 15;
 
 void loop() {
-
+  //Serial.println(" -- START");
   matrix.fillScreen(0);
   strip.fill(0);
 
   for (int16_t x = 0; x < GRID_LENGTH + STRIP_LENGTH ; x++) { 
 
-    for (int16_t y=0; y < GRID_HEIGHT; y++) {
-        // Serial.println("test: " + x);
+    for (int16_t y = 0; y < GRID_HEIGHT; y++) {
 
-        if (y == 0) {
-            if (x >= GRID_LENGTH) {
+        if (x < GRID_LENGTH) {
+            drawGrid(x, y, counter);
+        }
+        else if (y == 0) {
                 drawStrip(
                   x - GRID_LENGTH,
                   y,
                   counter,
                   counter - 256 - ((x - GRID_LENGTH) * (8 - y))  // set the counter to 0 for this strip
                 );
-            }
-        }
-
-        if (x < GRID_LENGTH) {
-            drawGrid(x, y, counter);
         }
         
         counter++;
@@ -134,7 +151,17 @@ void loop() {
 
   matrix.show();
   strip.show();
-  delay(100);
-  counter = 0;
-  // counter = 0 + shift_speed;
+  delay(DELAY);
+  // counter = 0;
+
+  counter = counter + shift_speed;
+  if (counter > 255) {
+    counter = 0;
+  }
+
+  counter2 = counter2 + 1;
+  if (counter2 > (GRID_LENGTH + STRIP_LENGTH)) {
+    counter2 = 0;
+  }
+  //Serial.println(" -- END");
 }
