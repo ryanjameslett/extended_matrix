@@ -63,10 +63,10 @@ uint32_t strip_color_wheel(int16_t WheelPos) {
   }
 }
 
-void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
+void drawStrip(int16_t x_pos, int16_t y_pos, int16_t counter_val, int16_t local_counter) {
     // int16_t color = counter_val - (x_pos * 8) - 255;
     int16_t skip = 255 / STRIP_LENGTH;
-    int16_t color = counter_val - 256 - (x_pos * 8) + (x_pos * skip);
+    int16_t color = local_counter + (x_pos * skip);
     
    
     // Serial.println("x: ", x_pos, " count: ", counter_val, " color: ", color);
@@ -104,7 +104,12 @@ void loop() {
 
         if (y == 0) {
             if (x >= GRID_LENGTH) {
-                drawStrip(x - GRID_LENGTH, y, counter);
+                drawStrip(
+                  x - GRID_LENGTH,
+                  y,
+                  counter,
+                  counter - 256 - ((x - GRID_LENGTH) * (8 - y))  // set the counter to 0 for this strip
+                );
             }
         }
 
