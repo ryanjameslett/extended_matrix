@@ -107,8 +107,8 @@ void stripColor(int16_t x_pos, int16_t pixel) {
     strip.setPixelColor(x_pos, strip_color_wheel(color));
 }
 
-void gridColor(int16_t x_pos, int16_t y_pos, int16_t pixel_val) {
-    matrix.drawPixel(x_pos, y_pos, grid_color_wheel(pixel_val));
+void gridColor(int16_t x_pos, int16_t y_pos, int16_t pixel) {
+    matrix.drawPixel(x_pos, y_pos, grid_color_wheel(pixel));
 }
 
 
@@ -121,7 +121,7 @@ void stripWipe(int16_t x_pos, int16_t pixel) {
   }
 }
 
-void gridWipe(int16_t x_pos, int16_t y_pos, int16_t pixel_val) {
+void gridWipe(int16_t x_pos, int16_t y_pos, int16_t pixel) {
   if (x_pos == (g_row)) {
     matrix.drawPixel(x_pos, y_pos, matrix.Color(255, 255, 255));
   }
