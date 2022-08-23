@@ -1,4 +1,28 @@
+/**
+ Extended matrix program.
 
+ Builds a matrix out of a 32x8 neopixel grid
+ and extends the matrix to include 2 1x58?
+ neopixel strips.
+
+ The idea is the panel is hanging from a pack
+ and the two strands are attached to the straps.
+
+ TODO:
+ * button to switch programs
+ * twist control to change brightness
+ * implement snake game using buttons
+ * phase all pixels same color program
+ TODO org:
+ * don't pass counter values -- closures work here.
+ * see if we can use 8-bit ints to save space
+ * pass strip number through display code
+ * rename counter -> pixel
+ * rename counter2 -> row
+ * add frame counter
+ * make it so we can draw backwards
+    * wipe code should be able to switch back and forward
+*/
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
@@ -17,7 +41,7 @@
 #define COLOR_WHEEL 1
 #define SCREEN_WIPE 2
 
-byte program = 2;
+byte program = 1;
 int16_t counter = 0;
 int16_t counter2 = 0;
 int16_t shift_speed = 1;
@@ -125,26 +149,17 @@ void drawGrid(int16_t x_pos, int16_t y_pos, int16_t counter_val) {
 // MAIN
 
 void loop() {
-  //Serial.println(" -- START");
   matrix.fillScreen(0);
   strip.fill(0);
 
   for (int16_t x = 0; x < GRID_LENGTH + STRIP_LENGTH ; x++) { 
-
     for (int16_t y = 0; y < GRID_HEIGHT; y++) {
-
         if (x < GRID_LENGTH) {
             drawGrid(x, y, counter);
         }
         else if (y == 0) {
-                drawStrip(
-                  x - GRID_LENGTH,
-                  y,
-                  counter,
-                  counter - 256 - ((x - GRID_LENGTH) * (8 - y))  // set the counter to 0 for this strip
-                );
+          drawStrip(x - GRID_LENGTH, y, counter, counter - 256 - ((x - GRID_LENGTH) * (8 - y)));
         }
-        
         counter++;
     }
   }
@@ -152,12 +167,7 @@ void loop() {
   matrix.show();
   strip.show();
   delay(DELAY);
-  // counter = 0;
-
-  counter = counter + shift_speed;
-  if (counter > 255) {
-    counter = 0;
-  }
+  counter = 0;
 
   counter2 = counter2 + 1;
   if (counter2 > (GRID_LENGTH + STRIP_LENGTH)) {
